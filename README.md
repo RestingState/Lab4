@@ -1,4 +1,4 @@
-# ap-project
+# Project
 Проект з прикладного програмування.
 Завдання проекту: https://github.com/shymanskyivm/Labs_For_Application_Programming.
 
