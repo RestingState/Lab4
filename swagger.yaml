@@ -226,6 +226,10 @@ paths:
         404:
           description: User not found
           
+      security:
+      - user:
+        - write:student
+          
     delete:
       tags:
       - "user"
@@ -246,6 +250,10 @@ paths:
           
         404:
           description: Student not found
+          
+      security:
+      - user:
+        - write:student
                 
 components:
   schemas:
@@ -329,4 +337,7 @@ components:
           authorizationUrl: http://
           scopes:
             write:student: modify student data
+            write:user: modify / delete user data
+            
+            
                       
