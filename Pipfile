@@ -8,6 +8,7 @@ flask = "==2.0.1"
 waitress = "*"
 cherrypy = "*"
 sqlalchemy = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
