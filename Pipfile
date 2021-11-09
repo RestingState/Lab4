@@ -7,6 +7,9 @@ name = "pypi"
 flask = "==2.0.1"
 waitress = "*"
 cherrypy = "*"
+sqlalchemy = "*"
+psycopg2-binary = "*"
+alembic = "*"
 
 [dev-packages]
 
