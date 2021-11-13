@@ -194,16 +194,6 @@ def GetStudentsTopRank(top):
         index = 1
         for student in students:
             result[f'Student {index}'] = schemas.StudentSchema().dump(student)
-
-            #marks = session.query(Mark).filter_by(student_id=student.id).all()
-            #for mark in marks:
-            #    markInfo = schemas.MarkSchema().dump(mark)
-            #    markInfo.pop('student_id')
-            #    markInfo.pop('subject_id')
-
-            #    subject = session.query(Subject).filter_by(id=mark.subject_id).first()
-            #    markInfo['subject'] = schemas.SubjectSchema().dump(subject)
-            #result[f'Student {index}']['marks'] = marks
             index += 1
         return result
     except Exception as err:
