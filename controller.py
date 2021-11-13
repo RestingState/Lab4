@@ -21,6 +21,7 @@ def userRoot():
       return f'Validation error.\n{err}', 400
     except Exception as err:
       return f'Internal server error. {err}', 500
+
     try:
         commands.AddUser(userInfo)
     except IntegrityError as err:
@@ -38,6 +39,8 @@ def userLogin():
     loginInfo = schema.load(data)
   except ValidationError as err:
     return f'Validation error.\n{err}', 400
+  except Exception as err:
+    return f'Internal server error. {err}', 500
   
   try:
     commands.Login(loginInfo)
@@ -61,17 +64,20 @@ def userHandling(login):
       schema = schemas.ValidateUserFieldsSchema().load({"login": login})
     except ValidationError as err:
       return f'{err}', 400
+    except Exception as err:
+      return f'Internal server error. {err}', 500
 
     try:
       userInfo = commands.GetUserInfo(login)
-    except ValueError as err:
-      return f'{err}', 404
-    
-    displayValue = f'''
+      displayValue = f'''
       full_name = {userInfo.full_name}; 
       login = {userInfo.login}; 
       email = {userInfo.email}; 
-    '''
+      '''
+    except ValueError as err:
+      return f'{err}', 404
+    except Exception as err:
+      return f'Internal server error. {err}', 500
     return f'{displayValue}'
 
   elif request.method == 'PUT':
@@ -82,6 +88,8 @@ def userHandling(login):
       userInfo = schema.load(data)
     except ValidationError as err:
       return f'Validation error.\n{err}', 400
+    except Exception as err:
+      return f'Internal server error. {err}', 500
 
     try:
       commands.UpdateUserInfo(login, userInfo)
@@ -90,8 +98,7 @@ def userHandling(login):
     except IntegrityError as err:
       return f'Already exists', 403
     except Exception as err:
-      return f'{err}', 500
-
+      return f'Internal server error. {err}', 500
     return f'Info changed successfully'
 
   elif request.method == 'DELETE':
@@ -100,14 +107,15 @@ def userHandling(login):
       schema = schemas.ValidateUserFieldsSchema().load({"login": login})
     except ValidationError as err:
       return f'{err}', 400
+    except Exception as err:
+      return f'Internal server error. {err}', 500
 
     try:
       commands.DeleteUser(login)
     except ValueError as err:
       return f'{err}', 404
     except Exception as err:
-      return f'{err}', 500
-
+      return f'Internal server error. {err}', 500
     return f'Deleted {login}'
 
 # ======== Student ========
@@ -119,13 +127,14 @@ def studentRoot():
         data = request.json
         studentInfo = schema.load(data)
     except ValidationError as err:
-        return f'Validation error.\n{err}', 400
+      return f'Validation error.\n{err}', 400
+    except Exception as err:
+      return f'Internal server error. {err}', 500
 
     try:
         commands.AddStudent(studentInfo.copy())
     except Exception as err:
-        return f'{err}', 500
-
+      return f'Internal server error. {err}', 500
     return f'{studentInfo}'     
 
 @app.route('/student/<id>', methods=['GET', 'PUT', 'DELETE'])
@@ -138,7 +147,7 @@ def studentHandling(id):
         except ValueError as err:
           return f'{err}', 404
         except Exception as err:
-          return f'{err}', 500
+          return f'Internal server error. {err}', 500
 
         try:
           studentInfo = commands.GetStudent(id)
@@ -152,7 +161,7 @@ def studentHandling(id):
         except ValueError as err:
           return f'{err}', 404
         except Exception as err:
-          return f'{err}', 500
+          return f'Internal server error. {err}', 500
         return f'{displayStudent}'
     elif request.method == 'PUT':
         studentInfo = None
@@ -163,7 +172,7 @@ def studentHandling(id):
         except ValidationError as err:
           return f'Validation error.\n{err}', 400
         except Exception as err:
-          return f'{err}', 500
+          return f'Internal server error. {err}', 500
 
         try:
           commands.UpdateStudentInfo(id, studentInfo)
@@ -172,7 +181,7 @@ def studentHandling(id):
         except IntegrityError as err:
           return f'Already exists', 403
         except Exception as err:
-          return f'{err}', 500
+          return f'Internal server error. {err}', 500
 
         return f'Info changed successfully'
     elif request.method == 'DELETE':
@@ -180,28 +189,28 @@ def studentHandling(id):
           schema = schemas.ValidateStudentFieldsSchema().load({"id": id})
         except ValidationError as err:
           return f'{err}', 400
+        except Exception as err:
+          return f'Internal server error. {err}', 500
 
         try:
           commands.DeleteStudent(id)
         except ValueError as err:
           return f'{err}', 404
         except Exception as err:
-          return f'{err}', 500
+          return f'Internal server error. {err}', 500
 
         return f'Deleted {id}'
 
 @app.route('/university/<top>', methods=['GET'])
 def universityTop(top):
-    #result = {}
     try:
         if int(top) < 1:
             return f'Enter number more than 0', 400
-        #students = commands.GetStudentsTopRank(int(top));
         result = commands.GetStudentsTopRank(int(top))
     except ValueError as err:
         return f'Enter number. Not a string or decimal', 404
     except Exception as err:
-        return f'{err}', 500
+      return f'Internal server error. {err}', 500
 
     try:
         displayValue = f''''''
@@ -214,20 +223,12 @@ def universityTop(top):
 
             '''
             displayValue = displayValue + displayStudent
-
-    #try:
-    #    index = 1
-    #    for student in students:
-    #        result[f'Student {index}'] = schemas.StudentSchema().dump(student)
-    #        index += 1
-    #except Exception as err:
-    #      return f'{err}', 500
         if int(top) > len(result):
             return f'{displayValue} \n{top} students was asked to show, but there are only {len(result)} of them'
         else:
             return f'{displayValue}'
     except Exception as err:
-        return f'{err}', 500
+      return f'Internal server error. {err}', 500
 
 if __name__ == '__main__':
   app.run(host='localhost', port='5000', debug=True)
