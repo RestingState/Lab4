@@ -10,8 +10,16 @@ cherrypy = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 alembic = "*"
+flask-bcrypt = "*"
+marshmallow = "*"
+flask-httpauth = "*"
+coverage = "*"
+pysqlite3 = "*"
+pytest = "*"
+typing-extensions = "*"
 
 [dev-packages]
+autopep8 = "*"
 
 [requires]
 python_version = "3.6"

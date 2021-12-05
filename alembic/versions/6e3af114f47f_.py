@@ -1,8 +1,8 @@
-"""create tables
+"""empty message
 
-Revision ID: b5dcad4085a3
+Revision ID: 6e3af114f47f
 Revises: 
-Create Date: 2021-10-26 16:55:03.726012
+Create Date: 2021-12-06 00:18:35.958344
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b5dcad4085a3'
+revision = '6e3af114f47f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,35 +22,31 @@ def upgrade():
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(length=80), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id'),
     sa.UniqueConstraint('name')
     )
     op.create_table('subject',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(length=80), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id'),
     sa.UniqueConstraint('name')
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('full_name', sa.String(length=64), nullable=False),
     sa.Column('login', sa.String(length=24), nullable=False),
-    sa.Column('password', sa.String(length=48), nullable=False),
+    sa.Column('password', sa.String(length=64), nullable=False),
     sa.Column('email', sa.String(length=80), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('id'),
     sa.UniqueConstraint('login')
     )
     op.create_table('student',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(length=64), nullable=False),
-    sa.Column('major_id', sa.Integer(), nullable=True),
+    sa.Column('major_id', sa.Integer(), nullable=False),
     sa.Column('rating', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['major_id'], ['major.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('mark',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -59,8 +55,7 @@ def upgrade():
     sa.Column('grade', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['student_id'], ['student.id'], ),
     sa.ForeignKeyConstraint(['subject_id'], ['subject.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 
