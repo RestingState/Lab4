@@ -7,18 +7,16 @@ DB_SCHEME = 'postgresql'
 DB_USERNAME = 'postgres'
 DB_PASSWORD = 'test'
 DB_SERVER = 'localhost'
-DB_PORT = '5432'
 
 # Not necessary to change
 DB_NAME = 'denys_project'
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
-connection_string = '{}://{}:{}@{}:{}/{}'.format(
+connection_string = '{}://{}:{}@{}/{}'.format(
     DB_SCHEME,
     DB_USERNAME,
     DB_PASSWORD,
     DB_SERVER,
-    DB_PORT,
     DB_NAME
 )
 engine = create_engine(connection_string, echo=True)

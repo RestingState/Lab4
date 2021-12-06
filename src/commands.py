@@ -15,6 +15,8 @@ def AddUser(userInfo):
     try:
         userInfo['password'] = bcrypt.generate_password_hash(
             userInfo['password'])
+        userInfo['password'] = userInfo['password'].decode(
+            'utf-8', 'ignore')
         print(userInfo['password'])
         session.add(Users(**userInfo))
         session.commit()
@@ -56,6 +58,8 @@ def UpdateUserInfo(login, userInfo):
         if 'password' in userInfo:
             userInfo['password'] = bcrypt.generate_password_hash(
                 userInfo['password'])
+            userInfo['password'] = userInfo['password'].decode(
+                'utf-8', 'ignore')
         session.query(Users).filter_by(login=login).update(userInfo)
         session.commit()
     except Exception as err:
