@@ -17,6 +17,7 @@ coverage = "*"
 pysqlite3 = "*"
 pytest = "*"
 typing-extensions = "*"
+pytest-timeout = "*"
 
 [dev-packages]
 autopep8 = "*"

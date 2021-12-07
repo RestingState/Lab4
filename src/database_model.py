@@ -21,6 +21,7 @@ connection_string = '{}://{}:{}@{}/{}'.format(
 )
 engine = create_engine(connection_string, echo=True)
 Base = declarative_base()
+metadata = Base.metadata
 
 
 class Users(Base):

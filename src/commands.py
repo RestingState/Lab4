@@ -1,12 +1,7 @@
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import desc
-from database_model import *
-from controller import bcrypt
-import schemas
-
-Session = sessionmaker()
-Session.configure(bind=engine)
-session = Session()
+from src import schemas
+from src.main import bcrypt, session
+from src.database_model import *
 
 # ======== User ========
 
@@ -25,17 +20,17 @@ def AddUser(userInfo):
         raise err
 
 
-def Login(loginInfo):
-    try:
-        result = session.query(Users).filter_by(
-            login=loginInfo['login']).first()
-        if result == None:
-            raise ValueError('No user found')
-        if bcrypt.check_password_hash(result.password, loginInfo['password']) != True:
-            raise ValueError('Incorrect password')
-    except Exception as err:
-        session.rollback()
-        raise err
+# def Login(loginInfo):
+#     try:
+#         result = session.query(Users).filter_by(
+#             login=loginInfo['login']).first()
+#         if result == None:
+#             raise ValueError('No user found')
+#         if bcrypt.check_password_hash(result.password, loginInfo['password']) != True:
+#             raise ValueError('Incorrect password')
+#     except Exception as err:
+#         session.rollback()
+#         raise err
 
 
 def GetUserInfo(login):

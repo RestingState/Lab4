@@ -1,25 +1,21 @@
-from flask import Flask, request
+from flask import Blueprint, request
 from flask_bcrypt import Bcrypt
-import schemas
-import commands
+from src import schemas
+from src import commands
+from src.main import session
+from src.database_model import *
 from sqlalchemy.exc import IntegrityError
 from marshmallow import ValidationError
-from sqlalchemy.orm import sessionmaker
-from database_model import *
 from flask_httpauth import HTTPBasicAuth
 
 
-app = Flask(__name__)
-bcrypt = Bcrypt(app)
+api_blueprint = Blueprint('api_blueprint', __name__)
 
-Session = sessionmaker()
-Session.configure(bind=engine)
 auth = HTTPBasicAuth()
 
 
 @auth.verify_password
 def verify_password(login, password):
-    session = Session()
     found_user = session.query(Users).filter_by(login=login).first()
     if not found_user:
         return False
@@ -32,7 +28,7 @@ def verify_password(login, password):
 
 # ======== USER ========
 
-@app.route('/user', methods=['POST'])
+@api_blueprint.route('/user', methods=['POST'])
 def userRoot():
     try:
         schema = schemas.UserSchema()
@@ -40,68 +36,51 @@ def userRoot():
         userInfo = schema.load(data)
     except ValidationError as err:
         return f'Validation error.\n{err}', 400
-    except Exception as err:
-        return f'Internal server error. {err}', 500
 
     try:
         commands.AddUser(userInfo)
     except IntegrityError as err:
         return f'User with the same email or login already exists', 403
-    except Exception as err:
-        return f'Internal server error. {err}', 500
 
     return f'User added successfully'
 
 
-@app.route('/user/login', methods=['GET'])
+@api_blueprint.route('/user/login', methods=['GET'])
+@auth.login_required
 def userLogin():
-    try:
-        schema = schemas.LoginSchema()
-        data = request.json
-        loginInfo = schema.load(data)
-    except ValidationError as err:
-        return f'Validation error.\n{err}', 400
-    except Exception as err:
-        return f'Internal server error. {err}', 500
-
-    try:
-        commands.Login(loginInfo)
-    except ValueError as err:
-        return f'Incorrect username / password', 400
-    except Exception as err:
-        return f'Internal server error. {err}', 500
-
     return 'Successful login!'
 
 
-@app.route('/user/logout', methods=['GET'])
+# ? No reason to implement this
+@api_blueprint.route('/user/logout', methods=['GET'])
 def userLogout():
-    data = request.json
-    login = data.pop('login', None)
-    if login is None:
-        return f'No login provided', 400
-    try:
-        schema = schemas.ValidateUserFieldsSchema().load({"login": login})
-    except ValidationError as err:
-        return f'{err}', 400
-    except Exception as err:
-        return f'Internal server error. {err}', 500
+    # data = request.json
+    # login = data.pop('login', None)
+    # if login is None:
+    #     return f'No login provided', 400
+    # try:
+    #     schema = schemas.ValidateUserFieldsSchema().load({"login": login})
+    # except ValidationError as err:
+    #     return f'{err}', 400
+    # except Exception as err:
+    #     return f'Internal server error. {err}', 500
 
-    try:
-        userInfo = commands.GetUserInfo(login)
-        displayValue = f'''
-    full_name = {userInfo.full_name}; 
-    login = {userInfo.login}; 
-    email = {userInfo.email}; 
-    '''
-    except ValueError as err:
-        return f'{err}', 404
-    except Exception as err:
-        return f'Internal server error. {err}', 500
-    return f'{displayValue}'
+    # try:
+    #     userInfo = commands.GetUserInfo(login)
+    #     displayValue = f'''
+    # full_name = {userInfo.full_name};
+    # login = {userInfo.login};
+    # email = {userInfo.email};
+    # '''
+    # except ValueError as err:
+    #     return f'{err}', 404
+    # except Exception as err:
+    #     return f'Internal server error. {err}', 500
+    # return f'{displayValue}'
+    return 'Successful logout!'
 
 
-@app.route('/user/<login>', methods=['GET', 'PUT', 'DELETE'])
+@api_blueprint.route('/user/<login>', methods=['GET', 'PUT', 'DELETE'])
 @auth.login_required
 def userHandling(login):
     global auth
@@ -112,8 +91,6 @@ def userHandling(login):
             schema = schemas.ValidateUserFieldsSchema().load({"login": login})
         except ValidationError as err:
             return f'{err}', 400
-        except Exception as err:
-            return f'Internal server error. {err}', 500
 
         try:
             userInfo = commands.GetUserInfo(login)
@@ -124,8 +101,6 @@ def userHandling(login):
       '''
         except ValueError as err:
             return f'{err}', 404
-        except Exception as err:
-            return f'Internal server error. {err}', 500
         return f'{displayValue}'
 
     elif request.method == 'PUT':
@@ -134,12 +109,9 @@ def userHandling(login):
         try:
             schema = schemas.ValidateUserFieldsSchema()
             data = request.json
-            auth = data.pop('authorization', None)
             userInfo = schema.load(data)
         except ValidationError as err:
             return f'Validation error.\n{err}', 400
-        except Exception as err:
-            return f'Internal server error. {err}', 500
 
         if login != logged_user_info.login:
             return f'Access denied', 400
@@ -150,34 +122,28 @@ def userHandling(login):
             return f'{err}', 404
         except IntegrityError as err:
             return f'Already exists', 403
-        except Exception as err:
-            return f'Internal server error. {err}', 500
         return f'Info changed successfully'
 
     elif request.method == 'DELETE':
-
-        if login != logged_user_info.login:
-            return f'Access denied', 400
 
         try:
             schema = schemas.ValidateUserFieldsSchema().load({"login": login})
         except ValidationError as err:
             return f'{err}', 400
-        except Exception as err:
-            return f'Internal server error. {err}', 500
+
+        if login != logged_user_info.login:
+            return f'Access denied', 400
 
         try:
             commands.DeleteUser(login)
         except ValueError as err:
             return f'{err}', 404
-        except Exception as err:
-            return f'Internal server error. {err}', 500
         return f'Deleted {login}'
 
 # ======== Student ========
 
 
-@app.route('/student', methods=['POST'])
+@api_blueprint.route('/student', methods=['POST'])
 @auth.login_required
 def studentRoot():
     try:
@@ -197,7 +163,7 @@ def studentRoot():
     return f'{studentInfo}'
 
 
-@app.route('/student/<id>', methods=['GET', 'PUT', 'DELETE'])
+@api_blueprint.route('/student/<id>', methods=['GET', 'PUT', 'DELETE'])
 @auth.login_required
 def studentHandling(id):
     if request.method == 'GET':
@@ -207,8 +173,6 @@ def studentHandling(id):
             return f'Not a valid integer', 400
         except ValueError as err:
             return f'{err}', 404
-        except Exception as err:
-            return f'Internal server error. {err}', 500
 
         try:
             studentInfo = commands.GetStudent(id)
@@ -221,8 +185,6 @@ def studentHandling(id):
           '''
         except ValueError as err:
             return f'{err}', 404
-        except Exception as err:
-            return f'Internal server error. {err}', 500
         return f'{displayStudent}'
 
     elif request.method == 'PUT':
@@ -230,7 +192,6 @@ def studentHandling(id):
         try:
             schema = schemas.ValidateStudentFieldsSchema()
             data = request.json
-            auth = data.pop('authorization', None)
             studentInfo = schema.load(data)
         except ValidationError as err:
             return f'Validation error.\n{err}', 400
@@ -253,20 +214,16 @@ def studentHandling(id):
             schema = schemas.ValidateStudentFieldsSchema().load({"id": id})
         except ValidationError as err:
             return f'{err}', 400
-        except Exception as err:
-            return f'Internal server error. {err}', 500
 
         try:
             commands.DeleteStudent(id)
         except ValueError as err:
             return f'{err}', 404
-        except Exception as err:
-            return f'Internal server error. {err}', 500
 
         return f'Deleted {id}'
 
 
-@app.route('/university/<top>', methods=['GET'])
+@api_blueprint.route('/university/<top>', methods=['GET'])
 def universityTop(top):
     try:
         if int(top) < 1:
@@ -274,8 +231,6 @@ def universityTop(top):
         result = commands.GetStudentsTopRank(int(top))
     except ValueError as err:
         return f'Enter number. Not a string or decimal', 404
-    except Exception as err:
-        return f'Internal server error. {err}', 500
 
     try:
         displayValue = f''''''
@@ -294,7 +249,3 @@ def universityTop(top):
             return f'{displayValue}'
     except Exception as err:
         return f'Internal server error. {err}', 500
-
-
-if __name__ == '__main__':
-    app.run(host='localhost', port='5000', debug=True)
